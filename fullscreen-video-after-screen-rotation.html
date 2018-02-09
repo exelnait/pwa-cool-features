@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Title</title>
+    <style>
+        body {
+            margin: 0;
+        }
+        main {
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        video {
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+<main>
+    <video autoplay controls id="player" src="http://creativeinteractivemedia.com/player/videos/Big_Buck_Bunny_Trailer.mp4"></video>
+</main>
+    <script>
+        if ('orientation' in screen) {
+            var player = document.getElementById("player");
+            screen.orientation.addEventListener('change', function() {
+                if (screen.orientation.type.startsWith('landscape')) {
+                    if (player.requestFullscreen) {
+                        player.requestFullscreen();
+                    } else {
+                        player.webkitRequestFullscreen();
+                    }
+                    lockScreenInLandscape();
+                } else if (document.fullscreenElement) {
+                    document.exitFullscreen();
+                }
+            });
+        }
+        function lockScreenInLandscape() {
+            if (!('orientation' in screen)) {
+                return;
+            }
+            if (matchMedia('(orientation: portrait) and (max-device-width: 768px)').matches) {
+                screen.orientation.lock('landscape').then(function() {
+                    listenToDeviceOrientationChanges();
+                });
+            }
+        }
+        function listenToDeviceOrientationChanges() {
+            if (!('DeviceOrientationEvent' in window)) {
+                return;
+            }
+            var previousDeviceOrientation, currentDeviceOrientation;
+            window.addEventListener('deviceorientation', function onDeviceOrientationChange(event) {
+                if (Math.abs(event.gamma) > 10 || Math.abs(event.beta) < 10) {
+                    previousDeviceOrientation = currentDeviceOrientation;
+                    currentDeviceOrientation = 'landscape';
+                    return;
+                }
+                if (Math.abs(event.gamma) < 10 || Math.abs(event.beta) > 10) {
+                    previousDeviceOrientation = currentDeviceOrientation;
+                    if (previousDeviceOrientation === 'landscape') {
+                        screen.orientation.unlock();
+                        window.removeEventListener('deviceorientation', onDeviceOrientationChange);
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
